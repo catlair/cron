@@ -1,0 +1,29 @@
+name: build-cron
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-cron:
+    runs-on: ubuntu-latest
+    environment: Build
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '>=1.17.0'
+      - run: |
+          go get -u 
+          CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -tags=windows -ldflags "-s -w -H=windowsgui" -o cron_bilitools.exe main.go cmd_windows.go
+      - name: Zip
+        run: |
+          tar -czf cron_bilitools.tar.gz cron_bilitools.exe README.md
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            cron_bilitools.tar.gz
+          draft: false
+          prerelease: false
