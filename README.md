@@ -9,5 +9,5 @@ CGO_ENABLED=0 GOOS=windows GOARCH=amd64 go build -tags=windows -ldflags "-s -w -
 windows：
 
 ```cmd
-cron_bilitools.exe -config=./config/config.json -time=08:08:08 -start=false
+cron_bilitools.exe -config=./config/config.json -time=08:08:08 -start=false -once=true
 ```
