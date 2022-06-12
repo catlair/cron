@@ -25,15 +25,15 @@ func main() {
 	if *isStart {
 		// 开机启动
 		log.Println("开机启动")
-		runBiliTools(*configPath)
+		runBiliTools(*configPath, *isOnce)
 	}
 	s := gocron.NewScheduler(time.Local)
-	s.Every(1).Day().At(*timeStr).Do(runBiliTools, *configPath)
+	s.Every(1).Day().At(*timeStr).Do(runBiliTools, *configPath, *isOnce)
 	log.Println("设置定时任务：", *timeStr)
 	s.StartBlocking()
 }
 
-func runBiliTools(configPath string) {
+func runBiliTools(configPath string, isOnce bool) {
 	var cmd *exec.Cmd
 	shell := "bash"
 	cArg := "-c"
@@ -41,8 +41,13 @@ func runBiliTools(configPath string) {
 		shell = "cmd"
 		cArg = "/c"
 	}
+	cmdArgs := []string{cArg, "bilitools", "-c", configPath}
+	if isOnce {
+		log.Println("只执行一次")
+		cmdArgs = append(cmdArgs, "--once=true")
+	}
 	installCmd := exec.Command(shell, cArg, "npm", "install", "-g", "@catlair/bilitools")
-	cmd = exec.Command(shell, cArg, "bilitools", "-c", configPath)
+	cmd = exec.Command(shell, cmdArgs...)
 	// 取消 cmd 窗口
 	if runtime.GOOS == "windows" {
 		prepareBackgroundCommand(cmd)
@@ -50,11 +55,7 @@ func runBiliTools(configPath string) {
 	}
 
 	installCmd.Run()
-	out, err := cmd.CombinedOutput()
-	if err != nil {
-		log.Printf("cmd.Run() failed with %s\n", err)
-	}
-	log.Printf("combined out:\n%s\n", out)
+	cmd.Run()
 }
 
 /*
